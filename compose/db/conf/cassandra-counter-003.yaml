@@ -1,0 +1,57 @@
+  # Cassandra storage config YAML
+
+  # NOTE:
+  #   See https://cassandra.apache.org/doc/latest/configuration/ for
+  #   full explanations of configuration directives
+  # /NOTE
+
+  cluster_name: saas-counter-cluster
+  num_tokens: 16
+  # allocate_tokens_for_local_replication_factor: 3
+  # конфигурация восстановления при сбое до 3 часов
+  hinted_handoff_enabled: true
+  max_hint_window_in_ms: 10800000 # 3 hours
+  # настройка ролевого доступа и управления пользователями
+  authenticator: PasswordAuthenticator
+  authorizer: CassandraAuthorizer
+  role_manager: CassandraRoleManager
+  network_authorizer: AllowAllNetworkAuthorizer
+  # механизм разделения по первичному ключу на разделы
+  partitioner: org.apache.cassandra.dht.Murmur3Partitioner
+  # сохранение лога транзакций в памяти и выгрузка в хранилище каждые 10 секунд
+  commitlog_sync: periodic
+  commitlog_sync_period_in_ms: 10000
+  # параметры seeds будут перезаписаны на реальный ip адрес после запуска сервера
+  seed_provider:
+    - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+      parameters:
+        - seeds: "cassandra-counter-001"
+  # конфигурация публикации
+  storage_port: 7000
+  ssl_storage_port: 7001
+  listen_address: 0.0.0.0
+  broadcast_address: 0.0.0.0
+  start_native_transport: true
+  native_transport_port: 9042
+  native_transport_allow_older_protocols: true
+  rpc_address: 0.0.0.0
+  broadcast_rpc_address: 172.28.0.2
+  # время ожидания ответа и лимит для медленных запросов
+  request_timeout_in_ms: 10000
+  slow_query_log_timeout_in_ms: 500
+  # режим определения привязки к дата-центру (SimpleSnitch для одного дата-центра, может использоваться PropertyFileSnitch)
+  # и список ip-адресов и дата-центров
+  endpoint_snitch: SimpleSnitch
+  # разрешить добавление пользовательских функций в Cassandra
+  enable_user_defined_functions: true
+  enable_scripted_user_defined_functions: true
+  # разрешить подробное протоколирование запросов (с версии 4.0)
+  full_query_logging_options:
+    enabled: true
+    log_dir: /tmp/cassandrafullquerylog
+    roll_cycle: HOURLY
+  # разрешить аудит попыток входа (с версии 4.0)
+  audit_logging_options:
+    enabled: true
+    logger:
+      - class_name: BinAuditLogger

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package name.svetov.saas.counter.grpc;
+
+message UnreadDialogueMessageCountRq {
+  string dialogue_id = 1;
+  string user_id = 2;
+}
+
+message UnreadDialogueMessageCountRs {
+  string dialogue_id = 1;
+  string user_id = 2;
+  int32 count = 3;
+}
+
+service DialogueMessageCounterService {
+  rpc GetUnreadMessageCount(UnreadDialogueMessageCountRq) returns (UnreadDialogueMessageCountRs);
+}

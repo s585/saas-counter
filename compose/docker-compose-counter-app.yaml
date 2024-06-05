@@ -1,0 +1,100 @@
+version: '3.9'
+x-cassandra_common: &cassandra_common
+  image: bitnami/cassandra:4.1.4
+  restart: always
+  networks:
+    - counter-app-network
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/nginx.Dockerfile
+    ports:
+        - "5100:5100"
+    restart: always
+
+  cassandra-counter-001:
+    <<: *cassandra_common
+    container_name: cassandra-counter-001
+    hostname: cassandra-counter-001
+    ports:
+      - "19042:9042"
+    environment:
+      - CASSANDRA_CLUSTER_NAME=saas-counter-cluster
+      - CASSANDRA_HOST=cassandra-counter-001
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_PASSWORD=password
+      - CASSANDRA_SEEDS=cassandra-counter-001
+    volumes:
+      - ./db/volumes/cassandra-counter_data:/bitnami
+      - ./db/init:/docker-entrypoint-initdb.d
+
+  cassandra-counter-002:
+    <<: *cassandra_common
+    container_name: cassandra-counter-002
+    hostname: cassandra-counter-002
+    ports:
+      - "29042:9042"
+    environment:
+      - CASSANDRA_CLUSTER_NAME=saas-counter-cluster
+      - CASSANDRA_HOST=cassandra-counter-002
+      - CASSANDRA_SEEDS=cassandra-counter-001
+      - CASSANDRA_PASSWORD=password
+
+  cassandra-counter-003:
+    <<: *cassandra_common
+    container_name: cassandra-counter-003
+    hostname: cassandra-counter-003
+    ports:
+      - "39042:9042"
+    environment:
+      - CASSANDRA_CLUSTER_NAME=saas-counter-cluster
+      - CASSANDRA_HOST=cassandra-counter-003
+      - CASSANDRA_SEEDS=cassandra-counter-001
+      - CASSANDRA_PASSWORD=password
+
+  counter_app_001:
+    image: saas-dialogue-app:latest
+    ports:
+      - "9595:9595"
+      - "7575:7575"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    networks:
+      - space-app-network
+      - counter-app-network
+
+  counter_app_002:
+    image: saas-dialogue-app:latest
+    ports:
+      - "9595:9595"
+      - "7575:7575"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    networks:
+      - space-app-network
+      - counter-app-network
+
+  counter_app_003:
+    image: saas-dialogue-app:latest
+    ports:
+      - "9595:9595"
+      - "7575:7575"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+    networks:
+      - space-app-network
+      - counter-app-network
+
+networks:
+  space-app-network:
+    driver: bridge
+  counter-app-network:
+    driver: bridge
+
+volumes:
+  cassandra-counter_data:
